@@ -10,31 +10,24 @@ class Field:
         return self.filling[cell_x][cell_y]
 
 
-def winner_determination(table, size):
-    for i in range(2, size - 2):
-        for j in range(2, size - 2):
-            symbol = table[i][j]
-            if symbol != ' ':
-                for k in range(-2, 3):
-                    if table[i - k][j] != symbol:
-                        break
+def winner_determination(table, cell_x, cell_y):
+    symbol = table[cell_x][cell_y]
+    directions = [[1, 0], [0, 1], [1, 1], [1, -1]]
+    length = 5
+
+    for direction in directions:
+        for cells_count in range(length):
+            for i in range(-cells_count, length - cells_count):
+                try:
+                    cell_content = table[cell_x + i * direction[0]][cell_y + i * direction[1]]
+                except IndexError:
+                    break
                 else:
-                    return symbol
-                for k in range(-2, 3):
-                    if table[i][j - k] != symbol:
+                    if cell_content != symbol:
                         break
-                else:
-                    return symbol
-                for k in range(-2, 3):
-                    if table[i - k][j - k] != symbol:
-                        break
-                else:
-                    return symbol
-                for k in range(-2, 3):
-                    if table[i - k][j + k] != symbol:
-                        break
-                else:
-                    return symbol
+            else:
+                return symbol
+
     return False
 
 
@@ -97,7 +90,7 @@ def process_mouse(event):
 
                         move_count += 1
 
-                        symbol = winner_determination(game_field.filling, SIZE)
+                        symbol = winner_determination(game_field.filling, j, i)
 
                         if symbol:
                             color_text = COLOR_CROSS if symbol == 'X' else COLOR_CIRCLE
