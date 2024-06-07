@@ -3,28 +3,26 @@ class Field:
     def __init__(self, size):
         self.filling = [[' '] * size for _ in range(size)]
 
-    def record(self, cell_x, cell_y, symbol):
+    def put(self, cell_x, cell_y, symbol):
         self.filling[cell_x][cell_y] = symbol
 
-    def read(self, cell_x, cell_y):
-        return self.filling[cell_x][cell_y]
+    def get(self, cell_x, cell_y):
+        if 0 <= cell_x < SIZE and 0 <= cell_y < SIZE:
+            return self.filling[cell_x][cell_y]
+        else:
+            return ' '
 
 
-def winner_determination(table, cell_x, cell_y):
-    symbol = table[cell_x][cell_y]
+def winner_determination(field, cell_x, cell_y):
+    symbol = field.get(cell_x, cell_y)
     directions = [[1, 0], [0, 1], [1, 1], [1, -1]]
     length = 5
 
     for direction in directions:
-        for cells_count in range(length):
-            for i in range(-cells_count, length - cells_count):
-                try:
-                    cell_content = table[cell_x + i * direction[0]][cell_y + i * direction[1]]
-                except IndexError:
+        for left_cells in range(length):
+            for i in range(-left_cells, length - left_cells):
+                if field.get(cell_x + i * direction[0], cell_y + i * direction[1]) != symbol:
                     break
-                else:
-                    if cell_content != symbol:
-                        break
             else:
                 return symbol
 
@@ -64,7 +62,7 @@ def painting_cross(canvas, center_x, center_y):
                               center_x + FIGURES_SIZE, center_y - FIGURES_SIZE,
                               fill=COLOR_CROSS, width=2.5)
 
-def painting_сircle(canvas, center_x, center_y):
+def painting_circle(canvas, center_x, center_y):
     global FIGURES_SIZE
     circle = canvas.create_oval(center_x - FIGURES_SIZE, center_y - FIGURES_SIZE,
                                 center_x + FIGURES_SIZE, center_y + FIGURES_SIZE,
@@ -85,12 +83,12 @@ def process_mouse(event):
                             painting_cross(canvas, center_x, center_y)
                             game_field.filling[j][i] = 'X'
                         else:
-                            painting_сircle(canvas, center_x, center_y)
+                            painting_circle(canvas, center_x, center_y)
                             game_field.filling[j][i] = 'O'
 
                         move_count += 1
 
-                        symbol = winner_determination(game_field.filling, j, i)
+                        symbol = winner_determination(game_field, j, i)
 
                         if symbol:
                             color_text = COLOR_CROSS if symbol == 'X' else COLOR_CIRCLE
