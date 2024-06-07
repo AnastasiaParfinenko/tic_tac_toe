@@ -24,7 +24,11 @@ def winner_determination(field, cell_x, cell_y):
                 if field.get(cell_x + i * direction[0], cell_y + i * direction[1]) != symbol:
                     break
             else:
-                return symbol
+                for edge in [-left_cells - 1, length - left_cells]:
+                    if field.get(cell_x + edge * direction[0], cell_y + edge * direction[1]) == symbol:
+                        break
+                else:
+                    return symbol
 
     return False
 
@@ -36,17 +40,17 @@ def line_x(i):
 def line_y(i):
     return FIELD_PADDING + TITLE_Y + i * FIELD_SIZE / SIZE
 
-def preparation(canvas):
 
-    text = canvas.create_text(SCREEN_SIZE/2, TITLE_Y, text="Let's play!")
+def preparation(canvas):
+    text = canvas.create_text(SCREEN_SIZE / 2, TITLE_Y, text="Let's play!")
 
     field = canvas.create_rectangle(FIELD_PADDING + TITLE_Y / 2, FIELD_PADDING + TITLE_Y,
-                                    FIELD_PADDING + TITLE_Y / 2 + FIELD_SIZE, FIELD_PADDING + TITLE_Y + FIELD_SIZE ,
+                                    FIELD_PADDING + TITLE_Y / 2 + FIELD_SIZE, FIELD_PADDING + TITLE_Y + FIELD_SIZE,
                                     fill=COLOR_FIELD, outline="")
 
     for i in range(1, SIZE):
         line = canvas.create_line(line_x(i), line_y(0), line_x(i), line_y(SIZE),
-                                    fill=COLOR_LINES, width=2)
+                                  fill=COLOR_LINES, width=2)
 
     for j in range(1, SIZE):
         line = canvas.create_line(line_x(0), line_y(j), line_x(SIZE), line_y(j),
@@ -62,11 +66,13 @@ def painting_cross(canvas, center_x, center_y):
                               center_x + FIGURES_SIZE, center_y - FIGURES_SIZE,
                               fill=COLOR_CROSS, width=2.5)
 
+
 def painting_circle(canvas, center_x, center_y):
     global FIGURES_SIZE
     circle = canvas.create_oval(center_x - FIGURES_SIZE, center_y - FIGURES_SIZE,
                                 center_x + FIGURES_SIZE, center_y + FIGURES_SIZE,
                                 outline=COLOR_CIRCLE, width=2.5)
+
 
 def process_mouse(event):
     for i in range(SIZE):
@@ -93,13 +99,13 @@ def process_mouse(event):
                         if symbol:
                             color_text = COLOR_CROSS if symbol == 'X' else COLOR_CIRCLE
                             win_label = Label(root, text=f'{symbol} wins!',
-                                                bg = COLOR_FIELD,
-                                                height = 3,
-                                                width = 20,
-                                                fg = color_text,
-                                                font=('Helvetica', 24),
-                                                relief = RAISED,
-                                                )
+                                              bg=COLOR_FIELD,
+                                              height=3,
+                                              width=20,
+                                              fg=color_text,
+                                              font=('Helvetica', 24),
+                                              relief=RAISED,
+                                              )
                             win_label.place(relx=0.5, rely=0.5, anchor='center')
 
                         break
@@ -109,6 +115,7 @@ def process_key(event):
     if event.keysym == "Escape":
         root.quit()
         return
+
 
 from tkinter import *
 
@@ -120,7 +127,6 @@ FIELD_SIZE = SCREEN_SIZE - 2 * FIELD_PADDING - TITLE_Y
 
 SIZE = 15
 FIGURES_SIZE = FIELD_SIZE / SIZE * 0.35
-
 
 COLOR_FIELD = '#7ac5cd'
 COLOR_LINES = '#98f5ff'
