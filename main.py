@@ -151,6 +151,10 @@ def process_mouse(event):
         game_field.game_on = True
 
 
+def process_mouse_2(event):
+    root.quit()
+    return
+
 def process_key(event):
     if event.keysym == "Escape":
         root.quit()
@@ -186,6 +190,8 @@ move_count = 0
 game_field = Field(SIZE)
 
 root.bind("<Key>", process_key)
+
 root.bind("<Button-1>", process_mouse)
+root.bind("<Button-2>", process_mouse_2)
 
 root.mainloop()
