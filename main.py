@@ -4,7 +4,7 @@ class Field:
 
     def __init__(self, size):
         self.filling = [[' '] * size for _ in range(size)]
-        self.game_switch = True
+        self.game_on = True
 
     def put(self, cell_x, cell_y, symbol):
         self.filling[cell_x][cell_y] = symbol
@@ -19,7 +19,7 @@ class Field:
 def winner_determination(field, cell_x, cell_y):
     symbol = field.get(cell_x, cell_y)
     directions = [[1, 0], [0, 1], [1, 1], [1, -1]]  # these directions correspond to the directions on the plane
-    length = 3
+    length = 5
 
     for direction in directions:
         for left_cells in range(length):
@@ -119,7 +119,7 @@ def ask_sign(canvas):
 
 
 def process_mouse(event):
-    if game_field.game_switch:
+    if game_field.game_on:
         for i in range(SIZE):
             if line_x(i) < event.x < line_x(i + 1):
                 for j in range(SIZE):
@@ -142,11 +142,13 @@ def process_mouse(event):
                             win_info = winner_determination(game_field, j, i)
 
                             if win_info:
-                                game_field.game_switch = False
+                                game_field.game_on = False
                                 root.after(300, lambda: win_line(canvas, win_info, center_x, center_y))
-                                # ask_sign(canvas)
 
                             break
+    else:
+        preparation(canvas)
+        game_field.game_on = True
 
 
 def process_key(event):
