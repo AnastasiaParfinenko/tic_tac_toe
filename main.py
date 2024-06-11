@@ -1,10 +1,12 @@
-import time
+from tkinter import *
 
-class Field:
+class GameState:
 
     def __init__(self, size):
         self.filling = [[' '] * size for _ in range(size)]
-        self.game_on = True
+        self.on = True
+        self.count = 0
+        self.pictures = []
 
     def put(self, cell_x, cell_y, symbol):
         self.filling[cell_x][cell_y] = symbol
@@ -15,11 +17,18 @@ class Field:
         else:
             return ' '
 
+    def reset(self):
+        self.on = True
+        self.filling = [[' '] * SIZE for _ in range(SIZE)]
+
+        for pic in self.pictures:
+            canvas.delete(pic)
+
 
 def winner_determination(field, cell_x, cell_y):
     symbol = field.get(cell_x, cell_y)
     directions = [[1, 0], [0, 1], [1, 1], [1, -1]]  # these directions correspond to the directions on the plane
-    length = 5
+    length = 3
 
     for direction in directions:
         for left_cells in range(length):
@@ -48,27 +57,26 @@ def line_y(i):
 def preparation(canvas):
     text = canvas.create_text(SCREEN_SIZE / 2, TITLE_Y, text="Let's play!")
 
-    field = canvas.create_rectangle(FIELD_PADDING + TITLE_Y / 2, FIELD_PADDING + TITLE_Y,
-                                    FIELD_PADDING + TITLE_Y / 2 + FIELD_SIZE, FIELD_PADDING + TITLE_Y + FIELD_SIZE,
-                                    fill=COLOR_FIELD, outline="")
+    canvas.create_rectangle(FIELD_PADDING + TITLE_Y / 2, FIELD_PADDING + TITLE_Y,
+                            FIELD_PADDING + TITLE_Y / 2 + FIELD_SIZE, FIELD_PADDING + TITLE_Y + FIELD_SIZE,
+                            fill=COLOR_FIELD, outline="")
 
     for i in range(1, SIZE):
-        line = canvas.create_line(line_x(i), line_y(0), line_x(i), line_y(SIZE),
-                                  fill=COLOR_LINES, width=2)
+        canvas.create_line(line_x(i), line_y(0), line_x(i), line_y(SIZE),
+                           fill=COLOR_LINES, width=2)
 
     for j in range(1, SIZE):
-        line = canvas.create_line(line_x(0), line_y(j), line_x(SIZE), line_y(j),
-                                  fill=COLOR_LINES, width=2)
+        canvas.create_line(line_x(0), line_y(j), line_x(SIZE), line_y(j),
+                           fill=COLOR_LINES, width=2)
 
 
 def painting_cross(canvas, center_x, center_y):
     global FIGURES_SIZE
-    line = canvas.create_line(center_x - FIGURES_SIZE, center_y - FIGURES_SIZE,
-                              center_x + FIGURES_SIZE, center_y + FIGURES_SIZE,
-                              fill=COLOR_CROSS, width=2.5)
-    line = canvas.create_line(center_x - FIGURES_SIZE, center_y + FIGURES_SIZE,
-                              center_x + FIGURES_SIZE, center_y - FIGURES_SIZE,
-                              fill=COLOR_CROSS, width=2.5)
+    for sign in [1, -1]:
+        line = canvas.create_line(center_x - FIGURES_SIZE, center_y - sign * FIGURES_SIZE,
+                                  center_x + FIGURES_SIZE, center_y + sign * FIGURES_SIZE,
+                                  fill=COLOR_CROSS, width=2.5)
+        self.pictures.append(line)
 
 
 def painting_circle(canvas, center_x, center_y):
@@ -76,6 +84,7 @@ def painting_circle(canvas, center_x, center_y):
     circle = canvas.create_oval(center_x - FIGURES_SIZE, center_y - FIGURES_SIZE,
                                 center_x + FIGURES_SIZE, center_y + FIGURES_SIZE,
                                 outline=COLOR_CIRCLE, width=2.5)
+    self.pictures.append(circle)
 
 
 def win_sign(canvas, info_list):
@@ -91,77 +100,82 @@ def win_sign(canvas, info_list):
                       )
     win_label.place(relx=0.5, rely=0.5, anchor='center')
 
+
 def win_line(canvas, info_list, cell_x, cell_y):
     symbol, direction, left_cells, right_cells = info_list
 
     tail = 0.6
     left_cells += tail
     right_cells += tail
-    color_line = COLOR_CROSS if symbol == 'X' else COLOR_CIRCLE
+    # color_line = COLOR_CROSS if symbol == 'X' else COLOR_CIRCLE
 
-    canvas.create_line(cell_x - direction[0] * left_cells * CELLS_SIZE,
-                       cell_y - direction[1] * left_cells * CELLS_SIZE,
-                       cell_x + direction[0] * right_cells * CELLS_SIZE,
-                       cell_y + direction[1] * right_cells * CELLS_SIZE,
-                       fill='black', width=3)
+    line = canvas.create_line(cell_x - direction[0] * left_cells * CELLS_SIZE,
+                              cell_y - direction[1] * left_cells * CELLS_SIZE,
+                              cell_x + direction[0] * right_cells * CELLS_SIZE,
+                              cell_y + direction[1] * right_cells * CELLS_SIZE,
+                              fill='black', width=3)
+    self.pictures.append(line)
+
 
 def write_slogan():
     label = Label(root, text='Па-ма-ги-те!')
     label.pack()
 
+
 def ask_sign(canvas):
     button = Button(root, text="YES",
-                       command=write_slogan)
+                    command=write_slogan)
     button.pack(side=LEFT)
     slogan = Button(root, text="NO",
-                       command=quit)
+                    command=quit)
     slogan.pack(side=RIGHT)
 
 
+def find_line_index(z, line_z):
+    # TODO: optimize me using 3rd grade math
+    for i in range(SIZE):
+        if line_z(i) < z < line_z(i + 1):
+            return i
+    return None
+
+
 def process_mouse(event):
-    if game_field.game_on:
-        for i in range(SIZE):
-            if line_x(i) < event.x < line_x(i + 1):
-                for j in range(SIZE):
-                    if line_y(j) < event.y < line_y(j + 1):
-                        if game_field.filling[j][i] == ' ':
-                            center_x = (line_x(i) + line_x(i + 1)) / 2
-                            center_y = (line_y(j) + line_y(j + 1)) / 2
+    if not self.on:
+        self.reset()
+        return
 
-                            global move_count
+    i = find_line_index(event.x, line_x)
+    j = find_line_index(event.y, line_y)
+    if i and j and self.filling[j][i] == ' ':
+        center_x = (line_x(i) + line_x(i + 1)) / 2
+        center_y = (line_y(j) + line_y(j + 1)) / 2
 
-                            if move_count % 2 == 0:
-                                painting_cross(canvas, center_x, center_y)
-                                game_field.filling[j][i] = 'X'
-                            else:
-                                painting_circle(canvas, center_x, center_y)
-                                game_field.filling[j][i] = 'O'
+        if self.count % 2 == 0:
+            painting_cross(canvas, center_x, center_y)
+            self.filling[j][i] = 'X'
+        else:
+            painting_circle(canvas, center_x, center_y)
+            self.filling[j][i] = 'O'
 
-                            move_count += 1
+        self.count += 1
 
-                            win_info = winner_determination(game_field, j, i)
+        win_info = winner_determination(self, j, i)
 
-                            if win_info:
-                                game_field.game_on = False
-                                root.after(300, lambda: win_line(canvas, win_info, center_x, center_y))
-
-                            break
-    else:
-        preparation(canvas)
-        game_field.game_on = True
+        if win_info:
+            self.on = False
+            root.after(300, lambda: win_line(canvas, win_info, center_x, center_y))
 
 
 def process_mouse_2(event):
     root.quit()
     return
 
+
 def process_key(event):
     if event.keysym == "Escape":
         root.quit()
         return
 
-
-from tkinter import *
 
 SCREEN_SIZE = 600
 FIELD_PADDING = 30
@@ -186,8 +200,7 @@ canvas.pack()
 
 preparation(canvas)
 
-move_count = 0
-game_field = Field(SIZE)
+self = GameState(SIZE)
 
 root.bind("<Key>", process_key)
 
