@@ -117,20 +117,6 @@ def win_line(canvas, info_list, cell_x, cell_y):
     self.pictures.append(line)
 
 
-def write_slogan():
-    label = Label(root, text='Па-ма-ги-те!')
-    label.pack()
-
-
-def ask_sign(canvas):
-    button = Button(root, text="YES",
-                    command=write_slogan)
-    button.pack(side=LEFT)
-    slogan = Button(root, text="NO",
-                    command=quit)
-    slogan.pack(side=RIGHT)
-
-
 def find_line_index(z, line_z):
     # TODO: optimize me using 3rd grade math
     for i in range(SIZE):
